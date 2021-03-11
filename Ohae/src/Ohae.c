@@ -89,7 +89,8 @@ int main(int argc, char *argv[])
 				else if (a == 0) // Факториал от 0 равен 1
 					printf("%i ! = 1", (int)a);// Аналогично вывод
 				else
-					printf("Write down a positive number");// Если пользователь ввел неправильно пишем Write down a positive number
+					printf("Write down a positive number\n");// Если пользователь ввел неправильно пишем Write down a positive number
+					continue;
 			}
 			else// Если число не целое
 			{
