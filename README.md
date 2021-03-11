@@ -1,5 +1,5 @@
 # Calculator
-Во первых, вы должны обладать ссылкой (https://github.com/BogusKladik/Calculator/).
+Во первых, вы должны обладать ссылкой (https://github.com/BogusKladik/Calculator/).\n
 Теперь вы ей обладаете, самое сложное уже выполнено, осталось зайти в Eclipse, зайти в workspace(свой или новый, не важно).
 Как откроется IDE сверху выбираем Window->Percpective->Open Percpective->Other...->Git.
 Откроется специальное окно, нужно нажать clone git repository(в ряду с желтыми значками).
