@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
+    FILE *input, *output;
     char choice, operation, con; // choice - выбор между методом вычисления, operation - сам знак операции, con - продолжить вычисления или нет
     char operations = ' ';       // Чтобы выводил только нужные операции в определнном методе вычисления
     do                           // Через do чтобы калькулятор выполнился хотя бы 1 раз
