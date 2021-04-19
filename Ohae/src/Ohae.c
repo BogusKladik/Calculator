@@ -21,49 +21,130 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char *argv[])
-{
+int counter(unsigned long int i) { // Функция считает сколько нужно символов для числа типа int
+    int counter = 0;
+    if (i < 0) {
+        counter++;
+        i = -i;
+    }
+    do {
+        counter++;
+        i = i / 10;
+    } while (i > 0);
+    return counter;
+}
+
+typedef struct input_data { // Лист для записи данных для чтения
+    char whatCalculator;
+    int sizeVector;
+    double *firstNum;
+    char operation;
+    double *secondNum;
+    char con;
+    struct input_data *next;
+} input_data;
+
+typedef struct output_data { // Лист для записи данных для вывода в другой файл
+    char *result;
+    struct output_data *next;
+} output_data;
+
+void push_back(input_data **head, FILE *InputFile) { // Название функции говорит само за себя
+    input_data *current;
+    if (*head == NULL) {
+        *head = malloc(sizeof(input_data));
+        current = *head;
+    } else {
+        current = *head;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = malloc(sizeof(input_data));
+        current = current->next;
+    }
+    fscanf(InputFile, " %c", &current->whatCalculator);
+    switch (current->whatCalculator) {
+        case 'v':
+            fscanf(InputFile, "%d", &current->sizeVector);
+            current->firstNum = malloc(current->sizeVector * sizeof(double));
+            for (int i = 0; i < current->sizeVector; i++) {
+                fscanf(InputFile, "%lf", &current->firstNum[i]);
+            }
+
+            fscanf(InputFile, " %c", &current->operation);
+
+            current->secondNum = malloc(current->sizeVector * sizeof(double));
+            for (int i = 0; i < current->sizeVector; i++) {
+                fscanf(InputFile, "%lf", &current->secondNum[i]);
+            }
+            break;
+        default:
+            current->firstNum = malloc(sizeof(double));
+            fscanf(InputFile, "%lf", current->firstNum);
+            fscanf(InputFile, " %c", &current->operation);
+            if (current->operation != '!') {
+                current->secondNum = malloc(sizeof(double));
+                fscanf(InputFile, "%lf", current->secondNum);
+            }
+    }
+    fscanf(InputFile, " %c ", &current->con);
+    current->next = NULL;
+}
+
+void deleteListI(input_data *head) { // Удалить лист input_data
+    input_data *current;
+    while (head != NULL) {
+        current = head;
+        head = head->next;
+        free(current);
+    }
+}
+
+void deleteListO(output_data *head) { // Удалить лист output_data
+    output_data *current;
+    while (head != NULL) {
+        current = head;
+        head = head->next;
+        free(current);
+    }
+}
+
+void writeListIntoFile(output_data *head, FILE *OutputFile) { // Вписать из листа в файл
+    output_data *current = head;
+    while (current != NULL) {
+        fprintf(OutputFile, "%s\n", current->result);
+        current = current->next;
+    }
+}
+
+int main(int argc, char *argv[]) {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
-    FILE *Input, *Output;
-    int NewWriteFile = 0, NewReadFile = 0;        // NewWriteFile/NewReadFile - Чтобы не выводил блок, который делает спрос о продолжении файла
-    char input[255], output[255];                 // Название файла ввода или вывода
-    char choice, operation, con, confl, fl = 'n'; // choice - выбор между методом вычисления, operation - сам знак операции, con - продолжить вычисления или нет, confl - продолжить работу с файлами, fl - оставить ли предыдущий файл или нет
-    char operations = ' ';                        // Чтобы выводил только нужные операции в определнном методе вычисления
-    do                                            // Цикл для работы с файлами
+    FILE *InputFile, *OutputFile;
+    input_data *head = NULL;          // Начало двух листов
+    output_data *head_out = NULL;
+    int NewWriteFile = 0, repeat = 0; // NewWriteFile - Чтобы не выводил блок, который делает спрос о продолжении файла
+    char inputc[255], outputc[255];   // Название файла ввода или вывода
+    char confl, fl = 'n';             // confl - продолжить работу с файлами, fl - оставить ли предыдущий файл или нет
+    do                                // Цикл для работы с файлами
     {
-        if (NewReadFile) // Повторить ли файл чтения
+        printf("File to read: ");
+        scanf(" %s", inputc);
+        InputFile = fopen(inputc, "r");
+        while (InputFile == NULL || feof(InputFile)) // Проверяем целлосность данных
         {
-            printf("Repeat the file for reading?(y/n)\n");
-            scanf(" %c", &fl);                 // Читает символ, если y - продолжить, если n - закончить
-            while ((fl != 'y') && (fl != 'n')) // Проверка на корректно введенное y или n
-            {
-                printf("invalid character, write \"y\" or \"n\"\n");
-                scanf(" %c", &fl);
-            }
-            NewReadFile = 0;
-            if (fl == 'n')
-            {
-                fclose(Input); // Закрываем старый файл для открытия нового
-            }
+            if (feof(InputFile))
+                printf("The file is empty\n");
+            else
+                printf("Incorrect file name\n");
+            scanf(" %s", inputc);
+            InputFile = fopen(inputc, "r");
         }
-        if (!NewReadFile && fl == 'n') // Открытие нового файла
-        {
-
-            NewReadFile = 1;
-            printf("File to read: ");
-            scanf(" %s", &input);
-            Input = fopen(input, "r");
-            while (Input == NULL || !feof(input)) // Проверяем целлосность данных
-            {
-                if (!feof(Input))
-                    printf("The file is empty\n");
-                else
-                    printf("Incorrect file name\n");
-                scanf(" %s", &input);
-                Input = fopen(input, "r");
-            }
+        while (!feof(InputFile)) { // Заполнение всего листа input_data
+            push_back(&head, InputFile);
         }
+        fclose(InputFile);
+        input_data *inListGo = head;
         if (NewWriteFile) // Повторить ли файл вписывания
         {
             printf("Repeat the file for writing?(y/n)\n");
@@ -74,305 +155,346 @@ int main(int argc, char *argv[])
                 scanf(" %c", &fl);
             }
             NewWriteFile = 0;
-            if (fl == 'n')
-            {
-                fclose(Output); // Закрываем старый файл для открытия нового
+            if (fl == 'y') {
+                OutputFile = fopen(outputc, "a");
             }
         }
         if (!NewWriteFile && fl == 'n') // Открытие нового файла
         {
             NewWriteFile = 1;
             printf("File to write: ");
-            scanf(" %s", &output);
-            Output = fopen(output, "w");
+            scanf(" %s", outputc);
+            OutputFile = fopen(outputc, "w");
         }
+        head_out = malloc(sizeof(output_data));
+        output_data *outListGo = head_out;
         do // Через do чтобы калькулятор выполнился хотя бы 1 раз
         {
-            //printf("What will you work with?(algebra - \"a\", vector - \"v\"): "); // Выбор метода вычисления
-            fscanf(Input, " %c", &choice);
-            switch (choice)
-            {
-            case 'a':
-                if ((operations == ' ') || (operations != 'a')) // Чтобы не повторял какие есть операции в том же методе
-                {
-                    printf("All operation: \"+\" - addition, \"-\" - subtraction, \"*\" - multiplication, \"/\" - division, \"\\\" - division without remainder, \"#\" - modulo, \"!\" - factorial, \"^\" - exponentiation.\n"); // Показывает все доступные операции
-                    operations = 'a';
-                }
-                double a, b, res; //a - 1 число, b - 2 число, res - результат
-                do
-                {
-                    printf("Write expression(example: x + y): ");
-                    fscanf(Input, "%lf %c", &a, &operation); // Получаем от пользователя данные
-                    if (operation != '!')                    // Если будет факториал, то нам не нужно второе число, а в остальрных нужно
-                    {
-                        fscanf(Input, "%lf", &b);
-                    }
-                    switch (operation) // Проверяем знак
-                    {
-                    case '+': // Сумма
-                        res = a + b;
-                        fprintf(Output, "%lf + %lf = %lf", a, b, res); // Вывод суммы
-                        break;
-                    case '-': // Разность
-                        res = a - b;
-                        fprintf(Output, "%lf - %lf = %lf", a, b, res); // Вывод разности
-                        break;
-                    case '*': // Умножение
-                        res = a * b;
-                        fprintf(Output, "%lf * %lf = %lf", a, b, res); // Вывод умножения
-                        break;
-                    case '/': // Деление
-                        if (b == 0)
-                        {
-                            printf("Cannot be divided by 0\n"); // Комментарий говорит сам за себя
-                            continue;                           // Чтобы вернуться в начало цикла без "Continue?"
-                        }
-                        res = a / b;
-                        fprintf(Output, "%lf / %lf = %lf", a, b, res); // Вывод деления
-                        break;
-                    case '\\': // Деление без остатка
-                        if (b == 0)
-                        {
-                            printf("Cannot be divided by 0\n"); // Комментарий говорит сам за себя
-                            continue;                           // Чтобы вернуться в начало цикла без "Continue?"
-                        }
-                        res = a / b;
-                        fprintf(Output, "%lf \\ %lf = %i", a, b, (int)res); // Вывод деления без остатка
-                        break;
-                    case '#': // Остаток от деления
-                        if (b == 0)
-                        {
-                            printf("Cannot be divided by 0\n"); // Комментарий говорит сам за себя
-                            continue;                           // Чтобы вернуться в начало цикла без "Continue?"
-                        }
-                        res = a / b;
-                        fprintf(Output, "%lf # %lf = %lf", a, b, a - ((int)res * b)); // Вывод остаток от деления
-                        break;
-                    case '!':                  // Факториал, точка с запятой нужна, чтобы не было ошибки из-за инициализации fuct
-                        if ((a - (int)a) == 0) // Проверка на то, что это целое число
-                        {
-                            unsigned long int fuct = a; // Результат вычисления факториала
-                            if ((int)a > 0)             // Проверка на правильность введения числа, а также представление double, как int
-                            {
-                                for (int i = 1; i < (int)a; i++)
-                                {
-                                    fuct = fuct * i; // Процесс вычисления факториала
-                                }
-                                fprintf(Output, "%i ! = %lu", (int)a, fuct); // Вывод факториала
-                            }
-                            else if (a == 0)                         // Факториал от 0 равен 1
-                                fprintf(Output, "%i ! = 1", (int)a); // Аналогично вывод
-                            else
-                            {
-                                printf("Write down a positive number\n"); // Если пользователь ввел неправильно пишем Write down a positive number
-                                continue;
-                            }
-                        }
-                        else // Если число не целое
-                        {
-                            printf("Write an integer\n"); // Комментарий говорит сам за себя
-                            continue;                     // Чтобы вернуться в начало цикла без "Continue?"
-                        }
-                        break;
-                    case '^':                  // Степень
-                        if ((b - (int)b) == 0) // Проверка на то, что степень - целое число
-                        {
-                            res = a;
-                            if ((int)b > 0) // Проверка знака степени, а также из double в int, поэтому возводить только в целую степень
-                            {
-                                for (int j = 0; j < (int)b - 1; j++)
-                                {
-                                    res = res * a; // Процесс вычисления степени числа
-                                }
-                                fprintf(Output, "%lf ^ %i = %lf", a, (int)b, res); // Вывод операции степени
-                            }
-                            else if ((int)b < 0) // Исход с отрицательной степенью
-                            {
-
-                                double c, d; // Добавляем числа, чтобы представить a как 1/a и возвести в положительную степень
-                                res = 1 / a;
-                                c = 1 / a;
-                                d = -b;
-                                for (int j = 0; j < (int)d - 1; j++)
-                                {
-                                    res = res * c; // Процесс вычисления степени числа
-                                }
-                                fprintf(Output, "%lf ^ %i = %lf", a, (int)b, res); // Вывод операции отрицательной степени
-                            }
-                            else
-                                fprintf(Output, "%lf ^ %i = 1", a, (int)b); // Если степень равна 0, то число в этой степени равно 1
-                        }
-                        else // Если число не целое
-                        {
-                            printf("Write an integer to a power\n"); // Комментарий говорит сам за себя
-                            continue;                                // Чтобы вернуться в начало цикла без "Continue?"
-                        }
-                        break;
-                    default:
-                        printf("I dont know this operation"); // Если операция не известна, выведет эту строку
-                    }
-                    fprintf(Output, "\n");
-                    printf("\nContinue this method?(y/n)\n"); // Вывод строки, с вопросом, продолжить ли вычисление
-                    fscanf(Input, " %c", &con);               // Читает символ, если y - продолжить, если n - закончить
-                    while ((con != 'y') && (con != 'n'))      // Проверка на корректно введенное y или n
-                    {
-                        printf("invalid character, write \"y\" or \"n\"\n");
-                        fscanf(Input, " %c", &con);
-                    }
-                } while (con == 'y'); // Будет продолжать пока пользователь будет вводить "y" после завершения вычислений
-                break;
-            case 'v':
-
-                if ((operations == ' ') || (operations != 'v')) // Чтобы не повторял какие есть операции в том же методе
-                {
-                    printf("All operation: \"+\" - addition, \"-\" - subtraction, \"c\" - scalar product.\n"); // Показывает все доступные операции
-                    operations = 'v';
-                }
-                int size;
-                do
-                {
-                    printf("Write vector`s size (The minimum value is 1): "); // Задаем размер вектора
-                    fscanf(Input, "%d", &size);
-                    while (size < 1) // Размер вектора не может быть отрицательным или равным нулю
-                    {
-                        printf("The minimum value is 1!\nSize: ");
-                        fscanf(Input, "%d", &size);
-                    }
-                    printf("Write expression(example: x1 y1 + x2 y2): "); // Ожидаем написания 2 векторов
-                    double *vector1 = malloc(size * sizeof(double));      // Первый вектор
-                    for (int i = 0; i < size; i++)
-                    {
-                        fscanf(Input, "%lf", &vector1[i]);
-                    }
-                    fscanf(Input, " %c", &operation);                // Операция
-                    double *vector2 = malloc(size * sizeof(double)); // Второй вектор
-                    for (int i = 0; i < size; i++)
-                    {
-                        fscanf(Input, "%lf", &vector2[i]);
-                    }
-                    double resvec; // Результат операции
-                    switch (operation)
-                    {
-                    case '+': // Сумма векторов
-                        fprintf(Output, "(");
-                        for (int i = 0; i < size; i++)
-                        {
-                            fprintf(Output, "%lf", vector1[i]);
-                            if (i < size - 1)
-                                fprintf(Output, ", ");
-                            else
-                                fprintf(Output, ") ");
-                        }
-                        fprintf(Output, "+ (");
-                        for (int i = 0; i < size; i++)
-                        {
-                            fprintf(Output, "%lf", vector2[i]);
-                            if (i < size - 1)
-                                fprintf(Output, ", ");
-                            else
-                                fprintf(Output, ") ");
-                        }
-                        fprintf(Output, "= (");
-                        for (int i = 0; i < size; i++)
-                        {
-                            resvec = vector1[i] + vector2[i];
-                            fprintf(Output, "%lf", resvec);
-                            if (i < size - 1)
-                                fprintf(Output, ", ");
-                            else
-                                fprintf(Output, ")");
-                        }
-                        break;
-                    case '-': // Разность векторов
-                        fprintf(Output, "(");
-                        for (int i = 0; i < size; i++)
-                        {
-                            fprintf(Output, "%lf", vector1[i]);
-                            if (i < size - 1)
-                                fprintf(Output, ", ");
-                            else
-                                fprintf(Output, ") ");
-                        }
-                        fprintf(Output, "- (");
-                        for (int i = 0; i < size; i++)
-                        {
-                            fprintf(Output, "%lf", vector2[i]);
-                            if (i < size - 1)
-                                fprintf(Output, ", ");
-                            else
-                                fprintf(Output, ") ");
-                        }
-                        fprintf(Output, "= (");
-                        for (int i = 0; i < size; i++)
-                        {
-                            resvec = vector1[i] - vector2[i];
-                            fprintf(Output, "%lf", resvec);
-                            if (i < size - 1)
-                                fprintf(Output, ", ");
-                            else
-                                fprintf(Output, ")");
-                        }
-                        break;
-                    case 'c': // Скалярное произведение
-                        fprintf(Output, "((");
-                        for (int i = 0; i < size; i++)
-                        {
-                            fprintf(Output, "%lf", vector1[i]);
-                            if (i < size - 1)
-                                fprintf(Output, ", ");
-                            else
-                                fprintf(Output, ") ");
-                        }
-                        fprintf(Output, "* (");
-                        for (int i = 0; i < size; i++)
-                        {
-                            fprintf(Output, "%lf", vector2[i]);
-                            if (i < size - 1)
-                                fprintf(Output, ", ");
-                            else
-                                fprintf(Output, ")) ");
-                        }
-                        fprintf(Output, "= ");
-                        resvec = 0.0;
-                        for (int i = 0; i < size; i++)
-                            resvec += vector1[i] * vector2[i];
-                        fprintf(Output, "%lf", resvec);
-                        break;
-                    default:
-                        printf("I dont know this operation"); // Если операция не известна, выведет эту строку
-                    }
-                    free(vector1); // Очищаем память
-                    free(vector2);
-                    fprintf(Output, "\n");
-                    printf("\nContinue this method?(y/n)\n"); // Вывод строки, с вопросом, продолжить ли вычисление
-                    fscanf(Input, " %c", &con);               // Читает символ, если y - продолжить, если n - закончить
-                    while ((con != 'y') && (con != 'n'))      // Проверка на корректно введенное y или n
-                    {
-                        printf("invalid character, write \"y\" or \"n\"\n");
-                        fscanf(Input, " %c", &con);
-                    }
-                } while (con == 'y'); // Будет продолжать пока пользователь будет вводить "y" после завершения вычислений
-                break;
-            default:
-                printf("Required to write \"a\" or \"v\"");
+            if (repeat) {
+                inListGo = inListGo->next;
+                outListGo->next = malloc(sizeof(output_data));
+                outListGo = outListGo->next;
             }
-            printf("Continue?(y/n)\n");          // Вывод строки, с вопросом, продолжить ли вычисление
-            fscanf(Input, " %c", &con);          // Читает символ, если y - продолжить, если n - закончить
-            while ((con != 'y') && (con != 'n')) // Проверка на корректно введенное y или n
-            {
-                printf("invalid character, write \"y\" or \"n\"\n");
-                fscanf(Input, " %c", &con);
+            switch (inListGo->whatCalculator) {
+                case 'a':;
+                    double res;
+                    switch (inListGo->operation) // Проверяем знак
+                    {
+                        case '+': // Сумма
+                            res = inListGo->firstNum[0] + inListGo->secondNum[0];
+                            outListGo->result = malloc(
+                                    (counter((int) inListGo->firstNum[0]) + counter((int) inListGo->secondNum[0]) +
+                                     counter((int) res) + 3 * 7 + 2 * 3 + 1) *
+                                    sizeof(char)); // Выделение памяти как и в след. вариантах
+                            sprintf(outListGo->result, "%lf + %lf = %lf", inListGo->firstNum[0], inListGo->secondNum[0],
+                                    res); // Вывод суммы
+                            break;
+                        case '-': // Разность
+                            res = inListGo->firstNum[0] - inListGo->secondNum[0];
+                            outListGo->result = malloc(
+                                    (counter((int) inListGo->firstNum[0]) + counter((int) inListGo->secondNum[0]) +
+                                     counter((int) res) + 3 * 7 + 2 * 3 + 1) *
+                                    sizeof(char));
+                            sprintf(outListGo->result, "%lf - %lf = %lf", inListGo->firstNum[0], inListGo->secondNum[0],
+                                    res); // Вывод разности
+                            break;
+                        case '*': // Умножение
+                            outListGo->result = malloc(
+                                    (counter((int) inListGo->firstNum[0]) + counter((int) inListGo->secondNum[0]) +
+                                     counter((int) res) + 3 * 7 + 2 * 3 + 1) *
+                                    sizeof(char));
+                            sprintf(outListGo->result, "%lf * %lf = %lf", inListGo->firstNum[0], inListGo->secondNum[0],
+                                    res); // Вывод умножения
+                            break;
+                        case '/': // Деление
+                            if (inListGo->secondNum[0] == 0) {
+                                outListGo->result = malloc(23 * sizeof(char));
+                                sprintf(outListGo->result, "Cannot be divided by 0"); // Комментарий говорит сам за себя
+                                break;                                                // Чтобы вернуться в начало цикла без "Continue?"
+                            }
+                            res = inListGo->firstNum[0] / inListGo->secondNum[0];
+                            outListGo->result = malloc(
+                                    (counter((int) inListGo->firstNum[0]) + counter((int) inListGo->secondNum[0]) +
+                                     counter((int) res) + 3 * 7 + 2 * 3 + 1) *
+                                    sizeof(char));
+                            sprintf(outListGo->result, "%lf / %lf = %lf", inListGo->firstNum[0], inListGo->secondNum[0],
+                                    res); // Вывод деления
+                            break;
+                        case '\\': // Деление без остатка
+                            if (inListGo->secondNum[0] == 0) {
+                                outListGo->result = malloc(23 * sizeof(char));
+                                sprintf(outListGo->result, "Cannot be divided by 0"); // Комментарий говорит сам за себя
+                                break;                                                // Чтобы вернуться в начало цикла без "Continue?"
+                            }
+                            res = inListGo->firstNum[0] / inListGo->secondNum[0];
+                            outListGo->result = malloc(
+                                    (counter((int) inListGo->firstNum[0]) + counter((int) inListGo->secondNum[0]) +
+                                     counter((int) res) + 2 * 7 + 2 * 3 + 1) *
+                                    sizeof(char));
+                            sprintf(outListGo->result, "%lf \\ %lf = %i", inListGo->firstNum[0], inListGo->secondNum[0],
+                                    (int) res); // Вывод деления без остатка
+                            break;
+                        case '#': // Остаток от деления
+                            if (inListGo->secondNum[0] == 0) {
+                                outListGo->result = malloc(23 * sizeof(char));
+                                sprintf(outListGo->result, "Cannot be divided by 0"); // Комментарий говорит сам за себя
+                                break;                                                // Чтобы вернуться в начало цикла без "Continue?"
+                            }
+                            res = inListGo->firstNum[0] / inListGo->secondNum[0];
+                            res = inListGo->firstNum[0] - ((int) res * inListGo->secondNum[0]);
+                            outListGo->result = malloc(
+                                    (counter((int) inListGo->firstNum[0]) + counter((int) inListGo->secondNum[0]) +
+                                     counter((int) res) + 3 * 7 + 2 * 3 + 1) *
+                                    sizeof(char));
+                            sprintf(outListGo->result, "%lf # %lf = %lf", inListGo->firstNum[0], inListGo->secondNum[0],
+                                    res); // Вывод остаток от деления
+                            break;
+                        case '!': // Факториал, точка с запятой нужна, чтобы не было ошибки из-за инициализации fuct
+                            if ((inListGo->firstNum[0] - (int) inListGo->firstNum[0]) ==
+                                0) // Проверка на то, что это целое число
+                            {
+                                unsigned long int fuct = inListGo->firstNum[0]; // Результат вычисления факториала
+                                if ((int) inListGo->firstNum[0] >
+                                    0) // Проверка на правильность введения числа, а также представление double, как int
+                                {
+                                    for (int i = 1; i < (int) inListGo->firstNum[0]; i++) {
+                                        fuct = fuct * i; // Процесс вычисления факториала
+                                    }
+                                    outListGo->result = malloc(
+                                            (counter((int) inListGo->firstNum[0]) +
+                                             counter((int) res) + 6) *
+                                            sizeof(char));
+                                    sprintf(outListGo->result, "%i ! = %lu", (int) inListGo->firstNum[0],
+                                            fuct); // Вывод факториала
+                                } else if (inListGo->firstNum[0] ==
+                                           0) { // Факториал от 0 равен 1
+                                    outListGo->result = malloc(
+                                            (counter((int) inListGo->firstNum[0]) +
+                                             7) *
+                                            sizeof(char));
+                                    sprintf(outListGo->result, "%i ! = 1",
+                                            (int) inListGo->firstNum[0]); // Аналогично вывод
+                                } else {
+                                    outListGo->result = malloc(29 * sizeof(char));
+                                    sprintf(outListGo->result,
+                                            "Write down a positive number"); // Если пользователь ввел неправильно пишем Write down a positive number
+                                    break;
+                                }
+                            } else // Если число не целое
+                            {
+                                outListGo->result = malloc(17 * sizeof(char));
+                                sprintf(outListGo->result, "Write an integer"); // Комментарий говорит сам за себя
+                                break;                                          // Чтобы вернуться в начало цикла без "Continue?"
+                            }
+                            break;
+                        case '^': // Степень
+                            if ((inListGo->secondNum[0] - (int) inListGo->secondNum[0]) ==
+                                0) // Проверка на то, что степень - целое число
+                            {
+                                res = inListGo->firstNum[0];
+                                if ((int) inListGo->secondNum[0] >
+                                    0) // Проверка знака степени, а также из double в int, поэтому возводить только в целую степень
+                                {
+                                    for (int j = 0; j < (int) inListGo->secondNum[0] - 1; j++) {
+                                        res = res * inListGo->firstNum[0]; // Процесс вычисления степени числа
+                                    }
+                                    outListGo->result = malloc(
+                                            (counter((int) inListGo->firstNum[0]) +
+                                             counter((int) inListGo->secondNum[0]) +
+                                             counter((int) res) + 2 * 7 + 2 * 3 + 1) *
+                                            sizeof(char));
+                                    sprintf(outListGo->result, "%lf ^ %i = %lf", inListGo->firstNum[0],
+                                            (int) inListGo->secondNum[0],
+                                            res); // Вывод операции степени
+                                } else if ((int) inListGo->secondNum[0] < 0) // Исход с отрицательной степенью
+                                {
+                                    double c, d; // Добавляем числа, чтобы представить a как 1/a и возвести в положительную степень
+                                    res = 1 / inListGo->firstNum[0];
+                                    c = 1 / inListGo->firstNum[0];
+                                    d = -inListGo->secondNum[0];
+                                    for (int j = 0; j < (int) d - 1; j++) {
+                                        res = res * c; // Процесс вычисления степени числа
+                                    }
+                                    outListGo->result = malloc(
+                                            (counter((int) inListGo->firstNum[0]) +
+                                             counter((int) inListGo->secondNum[0]) +
+                                             counter((int) res) + 2 * 7 + 2 * 3 + 1) *
+                                            sizeof(char));
+                                    sprintf(outListGo->result, "%lf ^ %i = %lf", inListGo->firstNum[0],
+                                            (int) inListGo->secondNum[0],
+                                            res); // Вывод операции отрицательной степени
+                                } else {
+                                    outListGo->result = malloc(
+                                            (counter((int) inListGo->firstNum[0]) +
+                                             counter((int) inListGo->secondNum[0]) + 7 + 2 * 3 + 1) *
+                                            sizeof(char));
+                                    sprintf(outListGo->result, "%lf ^ %i = 1", inListGo->firstNum[0],
+                                            (int) inListGo->secondNum[0]); // Если степень равна 0, то число в этой степени равно 1
+                                }
+                            } else // Если число не целое
+                            {
+                                outListGo->result = malloc(28 * sizeof(char));
+                                sprintf(outListGo->result,
+                                        "Write an integer to a power"); // Комментарий говорит сам за себя
+                                break;                                  // Чтобы вернуться в начало цикла без "Continue?"
+                            }
+                            break;
+                        default:
+                            outListGo->result = malloc(27 * sizeof(char));
+                            sprintf(outListGo->result,
+                                    "I dont know this operation"); // Если операция не известна, выведет эту строку
+                    }
+                    break;
+                case 'v':
+                    while (inListGo->sizeVector < 1) // Размер вектора не может быть отрицательным или равным нулю
+                    {
+                        outListGo->result = malloc(24 * sizeof(char));
+                        sprintf(outListGo->result, "The minimum value is 1!");
+                        break;
+                    }
+                    double *resvec; // Результат операции
+                    resvec = malloc(inListGo->sizeVector * sizeof(double));
+                    int sizeLine = 1;
+                    switch (inListGo->operation) {
+                        case '+': // Сумма векторов
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                resvec[i] = inListGo->firstNum[i] + inListGo->secondNum[i];
+                                sizeLine =
+                                        counter((int) inListGo->firstNum[i]) + counter((int) inListGo->secondNum[i]) +
+                                        counter((int) resvec[i]) + 7 * 3;
+                            }
+                            sizeLine += (2 + (inListGo->sizeVector - 1) * 2) * 3 + 2 * 3 + 1;
+                            outListGo->result = malloc(sizeLine * sizeof(char));
+                            sprintf(outListGo->result, "(");
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                sprintf(outListGo->result, "%s%lf", outListGo->result, inListGo->firstNum[i]);
+                                if (i < inListGo->sizeVector - 1) {
+                                    sprintf(outListGo->result, "%s, ", outListGo->result);
+                                } else {
+                                    sprintf(outListGo->result, "%s) ", outListGo->result);
+                                }
+                            }
+                            sprintf(outListGo->result, "%s+ (", outListGo->result);
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                sprintf(outListGo->result, "%s%lf", outListGo->result, inListGo->secondNum[i]);
+                                if (i < inListGo->sizeVector - 1) {
+                                    sprintf(outListGo->result, "%s, ", outListGo->result);
+                                } else {
+                                    sprintf(outListGo->result, "%s) ", outListGo->result);
+                                }
+                            }
+                            sprintf(outListGo->result, "%s= (", outListGo->result);
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                sprintf(outListGo->result, "%s%lf", outListGo->result, resvec[i]);
+                                if (i < inListGo->sizeVector - 1) {
+                                    sprintf(outListGo->result, "%s, ", outListGo->result);
+                                } else {
+                                    sprintf(outListGo->result, "%s)", outListGo->result);
+                                }
+                            }
+                            break;
+                        case '-': // Разность векторов
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                resvec[i] = inListGo->firstNum[i] - inListGo->secondNum[i];
+                                sizeLine =
+                                        counter((int) inListGo->firstNum[i]) + counter((int) inListGo->secondNum[i]) +
+                                        counter((int) resvec[i]) + 7 * 3;
+                            }
+                            sizeLine += (2 + (inListGo->sizeVector - 1) * 2) * 3 + 2 * 3 + 1;
+                            outListGo->result = malloc(sizeLine * sizeof(char));
+                            sprintf(outListGo->result, "(");
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                sprintf(outListGo->result, "%s%lf", outListGo->result, inListGo->firstNum[i]);
+                                if (i < inListGo->sizeVector - 1) {
+                                    sprintf(outListGo->result, "%s, ", outListGo->result);
+                                } else {
+                                    sprintf(outListGo->result, "%s) ", outListGo->result);
+                                }
+                            }
+                            sprintf(outListGo->result, "%s- (", outListGo->result);
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                sprintf(outListGo->result, "%s%lf", outListGo->result, inListGo->secondNum[i]);
+                                if (i < inListGo->sizeVector - 1) {
+                                    sprintf(outListGo->result, "%s, ", outListGo->result);
+                                } else {
+                                    sprintf(outListGo->result, "%s) ", outListGo->result);
+                                }
+                            }
+                            sprintf(outListGo->result, "%s= (", outListGo->result);
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                sprintf(outListGo->result, "%s%lf", outListGo->result, resvec[i]);
+                                if (i < inListGo->sizeVector - 1) {
+                                    sprintf(outListGo->result, "%s, ", outListGo->result);
+                                } else {
+                                    sprintf(outListGo->result, "%s)", outListGo->result);
+                                }
+                            }
+                            break;
+                        case 'c':; // Скалярное произведение
+                            double resvecc = 0.0;
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                resvecc += inListGo->firstNum[i] * inListGo->secondNum[i];
+                                sizeLine =
+                                        counter((int) inListGo->firstNum[i]) + counter((int) inListGo->secondNum[i]) +
+                                        7 * 2;
+                            }
+                            sizeLine +=
+                                    (2 + (inListGo->sizeVector - 1) * 2) * 2 + 2 * 3 + 3 + counter((int) resvecc) + 7;
+                            outListGo->result = malloc(sizeLine * sizeof(char));
+                            sprintf(outListGo->result, "((");
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                sprintf(outListGo->result, "%s%lf", outListGo->result, inListGo->firstNum[i]);
+                                if (i < inListGo->sizeVector - 1) {
+                                    sprintf(outListGo->result, "%s, ", outListGo->result);
+                                } else {
+                                    sprintf(outListGo->result, "%s) ", outListGo->result);
+                                }
+                            }
+                            sprintf(outListGo->result, "%s* (", outListGo->result);
+                            for (int i = 0; i < inListGo->sizeVector; i++) {
+                                sprintf(outListGo->result, "%s%lf", outListGo->result, inListGo->secondNum[i]);
+                                if (i < inListGo->sizeVector - 1) {
+                                    sprintf(outListGo->result, "%s, ", outListGo->result);
+                                } else {
+                                    sprintf(outListGo->result, "%s) ", outListGo->result);
+                                }
+                            }
+                            sprintf(outListGo->result, "%s= %lf", outListGo->result, resvecc);
+                            break;
+                        default:
+                            outListGo->result = malloc(27 * sizeof(char));
+                            sprintf(outListGo->result,
+                                    "I dont know this operation"); // Если операция не известна, выведет эту строку
+                    }
+                    break;
+                default:
+                    outListGo->result = malloc(29 * sizeof(char));
+                    sprintf(outListGo->result, "Required to write \"a\" or \"v\"");
             }
-        } while (con == 'y');                    // Будет продолжать пока пользователь будет вводить "y" после завершения вычислений
+            while ((inListGo->con != 'y') && (inListGo->con != 'n')) // Проверка на корректно введенное y или n
+            {
+                outListGo->result = malloc(36 * sizeof(char));
+                sprintf(outListGo->result, "Invalid character, write \"y\" or \"n\"");
+            }
+            if (inListGo->con == 'y') {
+                repeat = 1;
+            } else {
+                repeat = 0;
+            }
+        } while (inListGo->con ==
+                 'y');     // Будет продолжать пока пользователь будет вводить "y" после завершения вычислений
+        deleteListI(head); // Очищаем память
+        outListGo->next = NULL;
+        writeListIntoFile(head_out, OutputFile);
+        deleteListO(head_out); // Очищаем память
+        fclose(OutputFile);
         printf("Continue with files?(y/n)\n");   // Вывод строки, с вопросом, продолжить ли вычисление с файлами
         scanf(" %c", &confl);                    // Читает символ, если y - продолжить, если n - закончить
         while ((confl != 'y') && (confl != 'n')) // Проверка на корректно введенное y или n
         {
-            printf("invalid character, write \"y\" or \"n\"\n");
+            printf("Invalid character, write \"y\" or \"n\"\n");
             scanf(" %c", &confl);
         }
     } while (confl == 'y');
-    fclose(Input); // Закрываем под конец файлы
-    fclose(Output);
     return 0;
 }
