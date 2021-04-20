@@ -359,7 +359,7 @@ int main(int argc, char *argv[]) {
                         case '+': // Сумма векторов
                             for (int i = 0; i < inListGo->sizeVector; i++) {
                                 resvec[i] = inListGo->firstNum[i] + inListGo->secondNum[i];
-                                sizeLine =
+                                sizeLine +=
                                         counter((int) inListGo->firstNum[i]) + counter((int) inListGo->secondNum[i]) +
                                         counter((int) resvec[i]) + 7 * 3;
                             }
@@ -396,7 +396,7 @@ int main(int argc, char *argv[]) {
                         case '-': // Разность векторов
                             for (int i = 0; i < inListGo->sizeVector; i++) {
                                 resvec[i] = inListGo->firstNum[i] - inListGo->secondNum[i];
-                                sizeLine =
+                                sizeLine +=
                                         counter((int) inListGo->firstNum[i]) + counter((int) inListGo->secondNum[i]) +
                                         counter((int) resvec[i]) + 7 * 3;
                             }
@@ -434,7 +434,7 @@ int main(int argc, char *argv[]) {
                             double resvecc = 0.0;
                             for (int i = 0; i < inListGo->sizeVector; i++) {
                                 resvecc += inListGo->firstNum[i] * inListGo->secondNum[i];
-                                sizeLine =
+                                sizeLine +=
                                         counter((int) inListGo->firstNum[i]) + counter((int) inListGo->secondNum[i]) +
                                         7 * 2;
                             }
