@@ -34,6 +34,15 @@ int counter(unsigned long int i) { // Функция считает скольк
     return counter;
 }
 
+typedef struct example_input_data {
+    char whatCalculator;
+    int sizeVector;
+    double *firstNum;
+    char operation;
+    double *secondNum;
+    char con;
+} example_input_data;
+
 typedef struct input_data { // Лист для записи данных для чтения
     char whatCalculator;
     int sizeVector;
@@ -48,6 +57,71 @@ typedef struct output_data { // Лист для записи данных для
     char *result;
     struct output_data *next;
 } output_data;
+
+void fill_example(example_input_data *current, FILE *InputFile){
+    fscanf(InputFile, " %c", &current->whatCalculator);
+    switch (current->whatCalculator) {
+        case 'v':
+            fscanf(InputFile, "%d", &current->sizeVector);
+            current->firstNum = malloc(current->sizeVector * sizeof(double));
+            for (int i = 0; i < current->sizeVector; i++) {
+                fscanf(InputFile, "%lf", &current->firstNum[i]);
+            }
+
+            fscanf(InputFile, " %c", &current->operation);
+
+            current->secondNum = malloc(current->sizeVector * sizeof(double));
+            for (int i = 0; i < current->sizeVector; i++) {
+                fscanf(InputFile, "%lf", &current->secondNum[i]);
+            }
+            break;
+        default:
+            current->firstNum = malloc(sizeof(double));
+            fscanf(InputFile, "%lf", current->firstNum);
+            fscanf(InputFile, " %c", &current->operation);
+            if (current->operation != '!') {
+                current->secondNum = malloc(sizeof(double));
+                fscanf(InputFile, "%lf", current->secondNum);
+            }
+    }
+    fscanf(InputFile, " %c ", &current->con);
+}
+
+void pushback(input_data **head, example_input_data example_list){
+    input_data *current;
+    if (*head == NULL) {
+        *head = malloc(sizeof(input_data));
+        current = *head;
+    } else {
+        current = *head;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = malloc(sizeof(input_data));
+        current = current->next;
+    }
+    current->whatCalculator = example_list.whatCalculator;
+    switch (current->whatCalculator) {
+        case 'v':
+            current->sizeVector = example_list.sizeVector;
+            //current->firstNum = malloc(current->sizeVector * sizeof(double));
+            current->firstNum = example_list.firstNum;
+            current->operation = example_list.operation;
+            //current->secondNum = malloc(current->sizeVector * sizeof(double));
+            current->secondNum = example_list.secondNum;
+            break;
+        default:
+            //current->firstNum = malloc(sizeof(double));
+            current->firstNum = example_list.firstNum;
+            current->operation = example_list.operation;
+            if (current->operation != '!') {
+                //current->secondNum = malloc(sizeof(double));
+                current->secondNum = example_list.secondNum;
+            }
+    }
+    current->con = example_list.con;
+    current->next = NULL;
+}
 
 void push_back(input_data **head, FILE *InputFile) { // Название функции говорит само за себя
     input_data *current;
@@ -141,7 +215,9 @@ int main(int argc, char *argv[]) {
             InputFile = fopen(inputc, "r");
         }
         while (!feof(InputFile)) { // Заполнение всего листа input_data
-            push_back(&head, InputFile);
+            example_input_data example_list;
+            fill_example(&example_list, InputFile);
+            pushback(&head, example_list);
         }
         fclose(InputFile);
         input_data *inListGo = head;
@@ -439,7 +515,7 @@ int main(int argc, char *argv[]) {
                                         7 * 2;
                             }
                             sizeLine +=
-                                    (2 + (inListGo->sizeVector - 1) * 2) * 2 + 2 * 3 + 3 + counter((int) resvecc) + 7;
+                                    (2 + (inListGo->sizeVector - 1) * 2) * 2 + 2 * 3 + 2 + counter((int) resvecc) + 7;
                             outListGo->result = malloc(sizeLine * sizeof(char));
                             sprintf(outListGo->result, "((");
                             for (int i = 0; i < inListGo->sizeVector; i++) {
@@ -456,7 +532,7 @@ int main(int argc, char *argv[]) {
                                 if (i < inListGo->sizeVector - 1) {
                                     sprintf(outListGo->result, "%s, ", outListGo->result);
                                 } else {
-                                    sprintf(outListGo->result, "%s) ", outListGo->result);
+                                    sprintf(outListGo->result, "%s)) ", outListGo->result);
                                 }
                             }
                             sprintf(outListGo->result, "%s= %lf", outListGo->result, resvecc);
