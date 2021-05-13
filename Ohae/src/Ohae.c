@@ -309,6 +309,7 @@ int main(int argc, char *argv[]) {
 							break;
 						}
 						nums[j] = expression[i];
+						mayOne = 0;
 						i++;
 					}
 					double numFromString; // из строки в число
@@ -346,6 +347,7 @@ int main(int argc, char *argv[]) {
 							&& (link.tail_o->priority >= priority(expression[i]))) { // Если приоритет предыдущей операции больше следующей, решаем
 						if (link.tail_o->operation != '(') {
 							resultCalculatorWithController();
+							isNumParam = 1;
 							break;
 						}
 					}
