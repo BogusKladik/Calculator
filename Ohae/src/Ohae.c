@@ -21,10 +21,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const char ALL_OPERATION[] = { '^', '*', '/', '+', '-', '!' }; // Все операции
+const char ALL_OPERATION[] = {'^', '*', '/', '+', '-', '!'}; // Все операции
 
-int priority(char operation) { // Приоритет операций (для выполнения обратной полькой нотации)
-	switch (operation) {
+int priority(char operation)
+{ // Приоритет операций (для выполнения обратной полькой нотации)
+	switch (operation)
+	{
 	case '(':
 		return 4;
 	case ')':
@@ -44,114 +46,139 @@ int priority(char operation) { // Приоритет операций (для в
 	}
 }
 
-typedef struct numbers { // Очередь для чисел
+typedef struct numbers
+{ // Очередь для чисел
 	double num;
-	struct numbers *prev, *next;
+	struct numbers *next;
 } numbers;
 
-typedef struct operations { // Очередь для операций
+typedef struct operations
+{ // Очередь для операций
 	char operation;
-	int priority;
-	struct operations *prev, *next;
+	struct operations *next;
 } operations;
 
-typedef struct links { // Структура всех ссылок
-	numbers *head_n, *current_n, *tail_n;
-	operations *head_o, *current_o, *tail_o;
+typedef struct links
+{ // Структура всех ссылок
+	numbers *head_n;
+	operations *head_o;
 } links;
 
 links link; // Создаем элемент этой структуры
 
-double pop_n() { // Удалить из очереди чисел
+double pop_n()
+{ // Удалить из очереди чисел
 	double lastNum = 0.0;
-	if (link.head_n == NULL) {
+	if (link.head_n == NULL)
+	{
 		return lastNum;
 	}
-	if (link.head_n->next == NULL) {
+	if (link.head_n->next == NULL)
+	{
 		lastNum = link.head_n->num;
 		free(link.head_n);
 		link.head_n = NULL;
-		link.tail_n = NULL;
 		return lastNum;
 	}
-	lastNum = link.tail_n->num;
-	link.tail_n = link.tail_n->prev;
-	free(link.tail_n->next);
-	link.tail_n->next = NULL;
+	numbers *current = link.head_n;
+	while (current->next->next != NULL)
+	{
+		current = current->next;
+	}
+	lastNum = current->next->num;
+	free(current->next);
+	current->next = NULL;
 	return lastNum;
 }
 
-char pop_o() { // Удалить из очереди операций
+char pop_o()
+{ // Удалить из очереди операций
 	char lastOperation = ' ';
-	if (link.head_o == NULL) {
+	if (link.head_o == NULL)
+	{
 		return lastOperation;
 	}
-	if (link.head_o->next == NULL) {
+	if (link.head_o->next == NULL)
+	{
 		lastOperation = link.head_o->operation;
 		free(link.head_o);
 		link.head_o = NULL;
-		link.tail_o = NULL;
 		return lastOperation;
 	}
-	lastOperation = link.tail_o->operation;
-	link.tail_o = link.tail_o->prev;
-	free(link.tail_o->next);
-	link.tail_o->next = NULL;
+	operations *current = link.head_o;
+	while (current->next->next != NULL)
+	{
+		current = current->next;
+	}
+	lastOperation = current->next->operation;
+	free(current->next);
+	current->next = NULL;
 	return lastOperation;
 }
 
-void delete_n() { // Удалить всю очередь номеров
-	while (link.head_n != NULL) {
+void delete_n()
+{ // Удалить всю очередь номеров
+	while (link.head_n != NULL)
+	{
 		pop_n();
 	}
 }
 
-void delete_o() { // Удалить всю очередь операций
-	while (link.head_o != NULL) {
+void delete_o()
+{ // Удалить всю очередь операций
+	while (link.head_o != NULL)
+	{
 		pop_o();
 	}
 }
 
-void push_back_n(double data) { // Добавить в конец очереди с номерами
-	if (link.head_n == NULL) {
+void push_back_n(double data)
+{ // Добавить в конец очереди с номерами
+	if (link.head_n == NULL)
+	{
 		link.head_n = malloc(sizeof(numbers));
-		link.head_n->prev = NULL;
 		link.head_n->next = NULL;
-		link.tail_n = link.head_n;
 		link.head_n->num = data;
 		return;
 	}
-	link.tail_n->next = malloc(sizeof(numbers));
-	link.tail_n->next->prev = link.tail_n;
-	link.tail_n->next->num = data;
-	link.tail_n = link.tail_n->next;
-	link.tail_n->next = NULL;
+	numbers *current = link.head_n;
+	while (current->next != NULL)
+	{
+		current = current->next;
+	}
+	current->next = malloc(sizeof(numbers));
+	current->next->num = data;
+	current->next->next = NULL;
 }
 
-void push_back_o(char data) { // Добавить в конец очереди с операциями
-	if (link.head_o == NULL) {
+void push_back_o(char data)
+{ // Добавить в конец очереди с операциями
+	if (link.head_o == NULL)
+	{
 		link.head_o = malloc(sizeof(operations));
-		link.head_o->prev = NULL;
-		link.head_o->next = NULL;
-		link.tail_o = link.head_o;
 		link.head_o->operation = data;
-		link.head_o->priority = priority(data);
+		link.head_o->next = NULL;
 		return;
 	}
-	link.tail_o->next = malloc(sizeof(operations));
-	link.tail_o->next->prev = link.tail_o;
-	link.tail_o->next->operation = data;
-	link.tail_o->next->priority = priority(data);
-	link.tail_o = link.tail_o->next;
-	link.tail_o->next = NULL;
+	operations *current = link.head_o;
+	while (current->next != NULL)
+	{
+		current = current->next;
+	}
+	current->next = malloc(sizeof(operations));
+	current->next->operation = data;
+	current->next->next = NULL;
 }
 
-short int isNum(char num) { // Проверка на то, что элемент типа char является числом
+short int isNum(char num)
+{ // Проверка на то, что элемент типа char является числом
 	int truth = 0;
 	char numbersLikeChar[] =
-			{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-	for (int i = 0; i < 10; i++) {
-		if (num == numbersLikeChar[i]) {
+		{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+	for (int i = 0; i < 10; i++)
+	{
+		if (num == numbersLikeChar[i])
+		{
 			truth = 1;
 			return truth;
 		}
@@ -159,14 +186,18 @@ short int isNum(char num) { // Проверка на то, что элемент
 	return truth;
 }
 
-short int isOpe(char ope) { // Проверка на то, что элемент типа char является операцией
+short int isOpe(char ope)
+{ // Проверка на то, что элемент типа char является операцией
 	int truth = 0;
-	if (ope == ' ') {
+	if (ope == ' ')
+	{
 		truth = 1;
 		return truth;
 	}
-	for (int i = 0; i < 6; i++) {
-		if (ope == ALL_OPERATION[i]) {
+	for (int i = 0; i < 6; i++)
+	{
+		if (ope == ALL_OPERATION[i])
+		{
 			truth = 1;
 			return truth;
 		}
@@ -174,30 +205,38 @@ short int isOpe(char ope) { // Проверка на то, что элемент
 	return truth;
 }
 
-double calculate(double firstNum, double secondNum, char operation) { // Калькулятор для чисел
-	switch (operation) {
+double calculate(double firstNum, double secondNum, char operation)
+{ // Калькулятор для чисел
+	switch (operation)
+	{
 	case '!':
-		if (firstNum == 0) {
+		if (firstNum == 0)
+		{
 			return 1.0;
 		}
-		if (firstNum < 0) {
+		if (firstNum < 0)
+		{
 			return firstNum; // Должен выдавать ошибку, но я убрал это, для более легкой работы далее
 		}
 		double resultForIntegral = 1.0;
-		for (int j = 1; j <= (int) firstNum; j++) {
+		for (int j = 1; j <= (int)firstNum; j++)
+		{
 			resultForIntegral *= j;
 		}
 		return resultForIntegral;
 	case '^':
-		if (secondNum == 0) {
+		if (secondNum == 0)
+		{
 			return 1;
 		}
-		if (secondNum < 0) {
+		if (secondNum < 0)
+		{
 			secondNum = -secondNum;
 			firstNum = 1.0 / firstNum;
 		}
 		double result = 1.0;
-		for (int i = 0; i < (int) secondNum; i++) {
+		for (int i = 0; i < (int)secondNum; i++)
+		{
 			result *= firstNum;
 		}
 		return result;
@@ -214,28 +253,29 @@ double calculate(double firstNum, double secondNum, char operation) { // Кал�
 	}
 }
 
-double resultCalculatorWithController() { // Забирает с очереди элементы и дает их калькулятору. Потом записывает результат в очередь чисел
+double resultCalculatorWithController()
+{ // Забирает с очереди элементы и дает их калькулятору. Потом записывает результат в очередь чисел
 	char operationFromList = pop_o();
 	double secondNumFromList = pop_n();
 	double firstNumFromList = pop_n();
 	push_back_n(
-			calculate(firstNumFromList, secondNumFromList, operationFromList));
+		calculate(firstNumFromList, secondNumFromList, operationFromList));
 	return calculate(firstNumFromList, secondNumFromList, operationFromList);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
-	FILE *InputFile, *OutputFile; // Файлы
+	FILE *InputFile, *OutputFile;						   // Файлы
 	char input[125], output[125], continueFiles, fl = 'n'; // input/output - название файла чтения/записи, continueFiles - Продолжать ли работу с файлами, fl - повторить ли файл записи
-	int NewWriteFile = 0; // Новый ли файл записи
+	int NewWriteFile = 0;								   // Новый ли файл записи
 
 	link.head_n = NULL;
 	link.head_o = NULL;
-	link.tail_n = NULL;
-	link.tail_o = NULL;
 
-	do {
+	do
+	{
 		printf("File to read: ");
 		scanf(" %s", input);
 		InputFile = fopen(input, "r");
@@ -251,19 +291,20 @@ int main(int argc, char *argv[]) {
 		if (NewWriteFile) // Повторить ли файл вписывания
 		{
 			printf("Repeat the file for writing?(y/n)\n");
-			scanf(" %c", &fl); // Читает символ, если y - продолжить, если n - закончить
+			scanf(" %c", &fl);				   // Читает символ, если y - продолжить, если n - закончить
 			while ((fl != 'y') && (fl != 'n')) // Проверка на корректно введенное y или n
 			{
 				printf("invalid character, write \"y\" or \"n\"\n");
 				scanf(" %c", &fl);
 			}
 			NewWriteFile = 0;
-			if (fl == 'y') {
+			if (fl == 'y')
+			{
 				OutputFile = fopen(output, "a");
 			}
 		}
 		if (!NewWriteFile && fl == 'n') // Открытие нового файла
-				{
+		{
 			NewWriteFile = 1;
 			printf("File to write: ");
 			scanf(" %s", output);
@@ -271,41 +312,47 @@ int main(int argc, char *argv[]) {
 		}
 
 		char perm; // Читаем по одному элементу char
-		do {
+		do
+		{
 
 			char *expression; // записываем эти элементы сюда
 			expression = malloc(125 * sizeof(char));
 			int i = 0;
-			do {
+			do
+			{
 				fscanf(InputFile, " %c ", &perm);
 				expression[i] = (perm != 'y' && perm != 'n') ? perm : ' '; // закончится выражение должно ' '
-				if (++i >= 125) {
+				if (++i >= 125)
+				{
 					break;
 				}
 			} while (perm != 'y' && perm != 'n');
 
 			i = 0;
-			short int brackets = 0; // Кол-во скобок
+			short int brackets = 0;	   // Кол-во скобок
 			short int isNumParam = -1; // Является ли char числом
-			while (expression[i] != ' ') {
+			while (expression[i] != ' ')
+			{
 				short int mayOne; // для отрицательных чисел
-				if (isNumParam == 0 && expression[i] == '-' && (i + 1) < 125
-						&& isNum(expression[i + 1])) {
+				if (isNumParam == 0 && expression[i] == '-' && (i + 1) < 125 && isNum(expression[i + 1]))
+				{
 					mayOne = 1;
 					isNumParam = 1;
-				} else {
+				}
+				else
+				{
 					mayOne = 0;
 					isNumParam = isNum(expression[i]);
 				}
-				switch (isNumParam) {
-				case 1:
-					;
+				switch (isNumParam)
+				{
+				case 1:;
 					char *nums; // Записываем сюда потенциальное чилсо
 					nums = malloc(15 * sizeof(char));
-					for (int j = 0; j < 15; j++) {
-						if ((isOpe(expression[i]) && !mayOne)
-								|| expression[i] == ' ' || expression[i] == '('
-								|| expression[i] == ')') {
+					for (int j = 0; j < 15; j++)
+					{
+						if ((isOpe(expression[i]) && !mayOne) || expression[i] == ' ' || expression[i] == '(' || expression[i] == ')')
+						{
 							break;
 						}
 						nums[j] = expression[i];
@@ -318,38 +365,52 @@ int main(int argc, char *argv[]) {
 					free(nums);
 					break;
 				case 0:
-					if (expression[i] == '!') { // случай с !
+					if (expression[i] == '!')
+					{ // случай с !
 						push_back_n(calculate(pop_n(), 0.0, '!'));
 						i++;
 						break;
 					}
-					if (expression[i] == '(') { // Находим скобку
+					if (expression[i] == '(')
+					{ // Находим скобку
 						brackets += 1;
 						push_back_o('(');
 						i++;
 						break;
 					}
-					if (expression[i] == ')') { // Решаем все до открывающей скобки
-						if (link.head_o == NULL) {
+					char operFromStack = pop_o();
+					if (expression[i] == ')')
+					{ // Решаем все до открывающей скобки
+						if (operFromStack == ' ')
+						{
+							push_back_o(operFromStack);
 							brackets -= 1;
 							i++;
 							break;
 						}
-						if (link.tail_o->operation == '(') {
-							pop_o();
+						if (operFromStack == '(')
+						{
 							brackets -= 1;
 							i++;
 							break;
 						}
+						push_back_o(operFromStack);
 						resultCalculatorWithController();
 						break;
-					} else if (link.tail_o != NULL
-							&& (link.tail_o->priority >= priority(expression[i]))) { // Если приоритет предыдущей операции больше следующей, решаем
-						if (link.tail_o->operation != '(') {
+					}
+					else if ((priority(operFromStack) >= priority(expression[i])))
+					{ // Если приоритет предыдущей операции больше следующей, решаем
+						if (operFromStack != '(')
+						{
+							push_back_o(operFromStack);
 							resultCalculatorWithController();
 							isNumParam = 1;
 							break;
 						}
+					}
+					if (operFromStack != ' ')
+					{
+						push_back_o(operFromStack);
 					}
 					push_back_o(expression[i]);
 					i++;
@@ -359,42 +420,54 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
-			while (link.head_o != NULL) { // После конца обследуем оставшееся
+			while (link.head_o != NULL)
+			{ // После конца обследуем оставшееся
 				resultCalculatorWithController();
 			}
 
-			switch (brackets) { // Нормально ли расставлены скобки
+			switch (brackets)
+			{ // Нормально ли расставлены скобки
 			case 0:
-				if (link.head_n->next == NULL) {
+				if (link.head_n->next == NULL)
+				{
 					i = 0;
-					while (expression[i] != ' ') {
-						if (isNum(expression[i])) {
-							do {
-								if (isOpe(expression[i]) || expression[i] == ' '
-										|| expression[i] == '('
-										|| expression[i] == ')') {
+					while (expression[i] != ' ')
+					{
+						if (isNum(expression[i]))
+						{
+							do
+							{
+								if (isOpe(expression[i]) || expression[i] == ' ' || expression[i] == '(' || expression[i] == ')')
+								{
 									break;
 								}
 								fprintf(OutputFile, "%c", expression[i]);
 								i++;
 							} while (1);
 							fprintf(OutputFile, " ");
-						} else {
+						}
+						else
+						{
 							fprintf(OutputFile, "%c ", expression[i]);
 							i++;
 						}
 					}
 					free(expression);
-					fprintf(OutputFile, "= %lf\n", link.tail_n->num); // Записываем результат
-				} else {
+					fprintf(OutputFile, "= %lf\n", pop_n()); // Записываем результат
+				}
+				else
+				{
 					fprintf(OutputFile, "Incorrect write expression\n");
 				}
 				break;
 			default:
-				if (brackets > 0) {
+				if (brackets > 0)
+				{
 					fprintf(OutputFile,
 							"Incorrect number of characters(\"(\")\n");
-				} else {
+				}
+				else
+				{
 					fprintf(OutputFile,
 							"Incorrect number of characters(\")\")\n");
 				}
@@ -405,8 +478,8 @@ int main(int argc, char *argv[]) {
 		fclose(OutputFile); // Очищаем
 		fclose(InputFile);
 
-		printf("Continue with files?(y/n)\n"); // Вывод строки, с вопросом, продолжить ли вычисление с файлами
-		scanf(" %c", &continueFiles); // Читает символ, если y - продолжить, если n - закончить
+		printf("Continue with files?(y/n)\n");					 // Вывод строки, с вопросом, продолжить ли вычисление с файлами
+		scanf(" %c", &continueFiles);							 // Читает символ, если y - продолжить, если n - закончить
 		while ((continueFiles != 'y') && (continueFiles != 'n')) // Проверка на корректно введенное y или n
 		{
 			printf("Invalid character, write \"y\" or \"n\"\n");
