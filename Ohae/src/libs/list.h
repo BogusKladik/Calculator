@@ -39,6 +39,13 @@ typedef struct links_for_lists
 	output_data_for_lists *head_out, *current_out;
 } links_for_lists;
 
+links_for_lists link_for_lists;
+
+link_for_lists.head_in = NULL;
+link_for_lists.current_in = link_for_lists.head_in;
+link_for_lists.head_out = NULL;
+link_for_lists.current_out = link_for_lists.head_out;
+
 void fill_example(example_input_data_for_lists *current, FILE *InputFile);
 
 void push_back_list_in(example_input_data_for_lists example_list);

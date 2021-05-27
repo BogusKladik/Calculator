@@ -1,4 +1,4 @@
-#include "list.h"
+#include"list.h"
 
 #ifndef STDIO_H
 #include<stdio.h>
@@ -7,13 +7,6 @@
 #ifndef STDLIB_H
 #include<stdlib.h>
 #endif
-
-links_for_lists link_for_lists;
-
-link_for_lists.head_in = NULL;
-link_for_lists.current_in = link_for_lists.head_in;
-link_for_lists.head_out = NULL;
-link_for_lists.current_out = link_for_lists.head_out;
 
 void fill_example(example_input_data_for_lists *current, FILE *InputFile){
     fscanf(InputFile, " %c", &current->whatCalculator);
