@@ -8,7 +8,7 @@
 #include<stdlib.h>
 #endif
 
-void fill_example(example_input_data_for_lists *current, FILE *InputFile){
+void fill_example_list_in(example_input_data_for_lists *current, FILE *InputFile){
     fscanf(InputFile, " %c", &current->whatCalculator);
     switch (current->whatCalculator) {
         case 'v':
@@ -37,114 +37,114 @@ void fill_example(example_input_data_for_lists *current, FILE *InputFile){
     fscanf(InputFile, " %c ", &current->con);
 }
 
-void push_back_list_in(example_input_data_for_lists example_list){
-    if (link_for_lists.head_in == NULL) {
-        link_for_lists.head_in = malloc(sizeof(input_data_for_lists));
-        link_for_lists.current_in = link_for_lists.head_in;
+void push_back_list_in(example_input_data_for_lists example_list, links_for_lists *link){
+    if (link->head_in == NULL) {
+        link->head_in = malloc(sizeof(input_data_for_lists));
+        link->current_in = link->head_in;
     } else {
-        link_for_lists.current_in = link_for_lists.head_in;
-        while (link_for_lists.current_in->next != NULL) {
-            link_for_lists.current_in = link_for_lists.current_in->next;
+        link->current_in = link->head_in;
+        while (link->current_in->next != NULL) {
+            link->current_in = link->current_in->next;
         }
-        link_for_lists.current_in->next = malloc(sizeof(input_data_for_lists));
-        link_for_lists.current_in = link_for_lists.current_in->next;
+        link->current_in->next = malloc(sizeof(input_data_for_lists));
+        link->current_in = link->current_in->next;
     }
-    link_for_lists.current_in->next = NULL;
-    link_for_lists.current_in->whatCalculator = example_list.whatCalculator;
-    switch (link_for_lists.current_in->whatCalculator) {
+    link->current_in->next = NULL;
+    link->current_in->whatCalculator = example_list.whatCalculator;
+    switch (link->current_in->whatCalculator) {
         case 'v':
-            link_for_lists.current_in->sizeVector = example_list.sizeVector;
-            link_for_lists.current_in->firstNum = example_list.firstNum;
-            link_for_lists.current_in->operation = example_list.operation;
-            link_for_lists.current_in->secondNum = example_list.secondNum;
+            link->current_in->sizeVector = example_list.sizeVector;
+            link->current_in->firstNum = example_list.firstNum;
+            link->current_in->operation = example_list.operation;
+            link->current_in->secondNum = example_list.secondNum;
             break;
         default:
-            link_for_lists.current_in->firstNum = example_list.firstNum;
-            link_for_lists.current_in->operation = example_list.operation;
-            if (link_for_lists.current_in->operation != '!') {
-                link_for_lists.current_in->secondNum = example_list.secondNum;
+            link->current_in->firstNum = example_list.firstNum;
+            link->current_in->operation = example_list.operation;
+            if (link->current_in->operation != '!') {
+                link->current_in->secondNum = example_list.secondNum;
             }
     }
-    link_for_lists.current_in->con = example_list.con;
+    link->current_in->con = example_list.con;
 }
 
-void push_back_list_out(char *line){
-    if (link_for_lists.head_out == NULL){
-        link_for_lists.head_out = malloc(sizeof(output_data_for_lists));
-        link_for_lists.current_out = link_for_lists.head_out;
+void push_back_list_out(char *line, links_for_lists *link){
+    if (link->head_out == NULL){
+        link->head_out = malloc(sizeof(output_data_for_lists));
+        link->current_out = link->head_out;
     } else {
-        link_for_lists.current_out = link_for_lists.head_out;
-        while (link_for_lists.current_out->next != NULL) {
-            link_for_lists.current_out = link_for_lists.current_out->next;
+        link->current_out = link->head_out;
+        while (link->current_out->next != NULL) {
+            link->current_out = link->current_out->next;
         }
-        link_for_lists.current_out->next = malloc(sizeof(output_data_for_lists));
-        link_for_lists.current_out = link_for_lists.current_out->next;
+        link->current_out->next = malloc(sizeof(output_data_for_lists));
+        link->current_out = link->current_out->next;
     }
-    link_for_lists.current_out->next = NULL;
-    link_for_lists.current_out->result = line;
+    link->current_out->next = NULL;
+    link->current_out->result = line;
 }
 
-void pop_list_in(){
-    if (link_for_lists.head_in == NULL || link_for_lists.current_in == NULL){
+void pop_list_in(links_for_lists *link){
+    if (link->head_in == NULL || link->current_in == NULL){
         return;
     }
-    if (link_for_lists.head_in == link_for_lists.current_in){
-        link_for_lists.current_in = link_for_lists.current_in->next;
-        free(link_for_lists.head_in);
-        link_for_lists.head_in = link_for_lists.current_in;
+    if (link->head_in == link->current_in){
+        link->current_in = link->current_in->next;
+        free(link->head_in);
+        link->head_in = link->current_in;
         return;
     }
-    input_data_for_lists *term = link_for_lists.head_in;
-    while (term->next != link_for_lists.current_in){
+    input_data_for_lists *term = link->head_in;
+    while (term->next != link->current_in){
         term = term->next;
     }
-    term->next = link_for_lists.current_in->next;
-    free(link_for_lists.current_in);
-    link_for_lists.current_in = term;
+    term->next = link->current_in->next;
+    free(link->current_in);
+    link->current_in = term;
 }
 
-char *pop_list_out(){
-    if (link_for_lists.head_out == NULL || link_for_lists.current_out == NULL){
+char *pop_list_out(links_for_lists *link){
+    if (link->head_out == NULL || link->current_out == NULL){
         return NULL;
     }
     char *line;
-    if (link_for_lists.head_out == link_for_lists.current_out){
-        line = link_for_lists.current_out->result;
-        link_for_lists.current_out = link_for_lists.current_out->next;
-        free(link_for_lists.head_out);
-        link_for_lists.head_out = link_for_lists.current_out;
+    if (link->head_out == link->current_out){
+        line = link->current_out->result;
+        link->current_out = link->current_out->next;
+        free(link->head_out);
+        link->head_out = link->current_out;
         return line;
     }
-    output_data_for_lists *term = link_for_lists.head_out;
-    while (term->next != link_for_lists.current_out){
+    output_data_for_lists *term = link->head_out;
+    while (term->next != link->current_out){
         term = term->next;
     }
-    line = link_for_lists.current_out->result;
-    term->next = link_for_lists.current_out->next;
-    free(link_for_lists.current_out);
-    link_for_lists.current_out = term;
+    line = link->current_out->result;
+    term->next = link->current_out->next;
+    free(link->current_out);
+    link->current_out = term;
     return line;
 }
 
-void deleteListIn() { // Удалить лист input_data_for_lists
-    link_for_lists.current_in = link_for_lists.head_in;
-    while (link_for_lists.current_in != NULL){
-        link_for_lists.current_in = link_for_lists.head_in;
-        pop_list_in();
+void deleteListIn(links_for_lists *link) { // Удалить лист input_data_for_lists
+    link->current_in = link->head_in;
+    while (link->current_in != NULL){
+        link->current_in = link->head_in;
+        pop_list_in(link);
     }
 }
 
-void deleteListOut() { // Удалить лист output_data_for_lists
-    link_for_lists.current_out = link_for_lists.head_out;
-    while (link_for_lists.current_out != NULL){
-        link_for_lists.current_out = link_for_lists.head_out;
-        pop_list_out();
+void deleteListOut(links_for_lists *link) { // Удалить лист output_data_for_lists
+    link->current_out = link->head_out;
+    while (link->current_out != NULL){
+        link->current_out = link->head_out;
+        pop_list_out(link);
     }
 }
 
-void writeListIntoFile(FILE *OutputFile) { // Вписать из листа в файл
-    link_for_lists.current_out = link_for_lists.head_out;
-    while (link_for_lists.current_out != NULL) {
-        fprintf(OutputFile, "%s\n", pop_list_out());
+void writeListIntoFile(FILE *OutputFile, links_for_lists *link) { // Вписать из листа в файл
+    link->current_out = link->head_out;
+    while (link->current_out != NULL) {
+        fprintf(OutputFile, "%s\n", pop_list_out(link));
     }
 }

@@ -39,26 +39,20 @@ typedef struct links_for_lists
 	output_data_for_lists *head_out, *current_out;
 } links_for_lists;
 
-links_for_lists link_for_lists;
+void fill_example_list_in(example_input_data_for_lists *current, FILE *InputFile);
 
-link_for_lists.head_in = NULL;
-link_for_lists.current_in = link_for_lists.head_in;
-link_for_lists.head_out = NULL;
-link_for_lists.current_out = link_for_lists.head_out;
+void push_back_list_in(example_input_data_for_lists example_list, links_for_lists *link);
 
-void fill_example(example_input_data_for_lists *current, FILE *InputFile);
+void push_back_list_out(char *line, links_for_lists *link);
 
-void push_back_list_in(example_input_data_for_lists example_list);
+void pop_list_in(links_for_lists *link);
 
-void push_back_list_out(char *line);
+char *pop_list_out(links_for_lists *link);
 
-void pop_list_in();
+void deleteListIn(links_for_lists *link);
 
-char *pop_list_out();
+void deleteListOut(links_for_lists *link);
 
-void deleteListIn();
+void writeListIntoFile(FILE *OutputFile, links_for_lists *link);
 
-void deleteListOut();
-
-void writeListIntoFile(FILE *OutputFile);
 #endif // listh
