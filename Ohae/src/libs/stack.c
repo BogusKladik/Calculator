@@ -9,7 +9,7 @@
 #endif
 
 double pop_n(links_for_stacks *link)
-{ // Удалить из очереди чисел
+{
 	double lastNum = 0.0;
 	if (link->head_n == NULL)
 	{
@@ -34,7 +34,7 @@ double pop_n(links_for_stacks *link)
 }
 
 char pop_o(links_for_stacks *link)
-{ // Удалить из очереди операций
+{
 	char lastOperation = ' ';
 	if (link->head_o == NULL)
 	{
@@ -59,7 +59,7 @@ char pop_o(links_for_stacks *link)
 }
 
 void delete_n(links_for_stacks *link)
-{ // Удалить всю очередь номеров
+{
 	while (link->head_n != NULL)
 	{
 		pop_n(link);
@@ -67,7 +67,7 @@ void delete_n(links_for_stacks *link)
 }
 
 void delete_o(links_for_stacks *link)
-{ // Удалить всю очередь операций
+{
 	while (link->head_o != NULL)
 	{
 		pop_o(link);
@@ -75,7 +75,7 @@ void delete_o(links_for_stacks *link)
 }
 
 void push_back_n(double data, links_for_stacks *link)
-{ // Добавить в конец очереди с номерами
+{
 	if (link->head_n == NULL)
 	{
 		link->head_n = malloc(sizeof(numbers));
@@ -94,7 +94,7 @@ void push_back_n(double data, links_for_stacks *link)
 }
 
 void push_back_o(char data, links_for_stacks *link)
-{ // Добавить в конец очереди с операциями
+{
 	if (link->head_o == NULL)
 	{
 		link->head_o = malloc(sizeof(operations));

@@ -39,20 +39,20 @@ typedef struct links_for_queues
 	output_data_for_queues *head_out, *tail_out;
 } links_for_queues;
 
-void fill_example_queue_in(example_input_data_for_queues *current, FILE *InputFile);
+void fill_example_queue_in(example_input_data_for_queues *current, FILE *InputFile);// Заполнить элемент структуры
 
-void push_back_queue_in(example_input_data_for_queues example_queue, links_for_queues *link);
+void push_back_queue_in(example_input_data_for_queues example_queue, links_for_queues *link);// Добавить в очередь с исходными данными
 
-void push_back_queue_out(char *line, links_for_queues *link);
+void push_back_queue_out(char *line, links_for_queues *link);// Добавить в очередь с выходными данными
 
-void pop_queue_in(links_for_queues *link);
+void pop_queue_in(links_for_queues *link);// Убрать из очереди с иходными данными
 
-char *pop_queue_out(links_for_queues *link);
+char *pop_queue_out(links_for_queues *link);// Убрать из очереди с выходными данными
 
-void deletequeueIn(links_for_queues *link);
+void deletequeueIn(links_for_queues *link);// Удалить очередь с исходными данными
 
-void deletequeueOut(links_for_queues *link);
+void deletequeueOut(links_for_queues *link);// Удалить очередь с выходными данными
 
-void writequeueIntoFile(FILE *OutputFile, links_for_queues *link);
+void writequeueIntoFile(FILE *OutputFile, links_for_queues *link);// Написать в файл результат
 
 #endif // queueh

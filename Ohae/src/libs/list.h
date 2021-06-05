@@ -39,20 +39,20 @@ typedef struct links_for_lists
 	output_data_for_lists *head_out, *current_out;
 } links_for_lists;
 
-void fill_example_list_in(example_input_data_for_lists *current, FILE *InputFile);
+void fill_example_list_in(example_input_data_for_lists *current, FILE *InputFile);// Заполнить элемент структуры
 
-void push_back_list_in(example_input_data_for_lists example_list, links_for_lists *link);
+void push_list_in(example_input_data_for_lists example_list, links_for_lists *link);// Добавить в лист с исходными данными
 
-void push_back_list_out(char *line, links_for_lists *link);
+void push_list_out(char *line, links_for_lists *link);// Добавить в лист с выходными данными
 
-void pop_list_in(links_for_lists *link);
+void pop_list_in(links_for_lists *link);// Убрать из листа с иходными данными
 
-char *pop_list_out(links_for_lists *link);
+char *pop_list_out(links_for_lists *link);// Убрать из листа с выходными данными
 
-void deleteListIn(links_for_lists *link);
+void deleteListIn(links_for_lists *link);// Удалить лист с исходными данными
 
-void deleteListOut(links_for_lists *link);
+void deleteListOut(links_for_lists *link);// Удалить лист с выходными данными
 
-void writeListIntoFile(FILE *OutputFile, links_for_lists *link);
+void writeListIntoFile(FILE *OutputFile, links_for_lists *link);// Написать в файл результат
 
 #endif // listh

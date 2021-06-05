@@ -37,7 +37,7 @@ void fill_example_list_in(example_input_data_for_lists *current, FILE *InputFile
     fscanf(InputFile, " %c ", &current->con);
 }
 
-void push_back_list_in(example_input_data_for_lists example_list, links_for_lists *link){
+void push_list_in(example_input_data_for_lists example_list, links_for_lists *link){
     if (link->head_in == NULL) {
         link->head_in = malloc(sizeof(input_data_for_lists));
         link->current_in = link->head_in;
@@ -68,7 +68,7 @@ void push_back_list_in(example_input_data_for_lists example_list, links_for_list
     link->current_in->con = example_list.con;
 }
 
-void push_back_list_out(char *line, links_for_lists *link){
+void push_list_out(char *line, links_for_lists *link){
     if (link->head_out == NULL){
         link->head_out = malloc(sizeof(output_data_for_lists));
         link->current_out = link->head_out;
@@ -126,7 +126,7 @@ char *pop_list_out(links_for_lists *link){
     return line;
 }
 
-void deleteListIn(links_for_lists *link) { // Удалить лист input_data_for_lists
+void deleteListIn(links_for_lists *link) {
     link->current_in = link->head_in;
     while (link->current_in != NULL){
         link->current_in = link->head_in;
@@ -134,7 +134,7 @@ void deleteListIn(links_for_lists *link) { // Удалить лист input_data
     }
 }
 
-void deleteListOut(links_for_lists *link) { // Удалить лист output_data_for_lists
+void deleteListOut(links_for_lists *link) {
     link->current_out = link->head_out;
     while (link->current_out != NULL){
         link->current_out = link->head_out;
@@ -142,7 +142,7 @@ void deleteListOut(links_for_lists *link) { // Удалить лист output_da
     }
 }
 
-void writeListIntoFile(FILE *OutputFile, links_for_lists *link) { // Вписать из листа в файл
+void writeListIntoFile(FILE *OutputFile, links_for_lists *link) {
     link->current_out = link->head_out;
     while (link->current_out != NULL) {
         fprintf(OutputFile, "%s\n", pop_list_out(link));
